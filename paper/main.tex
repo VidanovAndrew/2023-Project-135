@@ -1,158 +1,118 @@
 \documentclass{article}
-\usepackage{arxiv}
-
 \usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage[usenames]{xcolor}
+\usepackage{colortbl}
 \usepackage[english, russian]{babel}
-\usepackage[T1]{fontenc}
-\usepackage{url}
-\usepackage{booktabs}
 \usepackage{amsfonts}
-\usepackage{nicefrac}
-\usepackage{microtype}
-\usepackage{lipsum}
-\usepackage{graphicx}
-\usepackage{natbib}
-\usepackage{doi}
+\usepackage{bm}
+\usepackage[margin=3cm]{geometry}
+\usepackage{algorithm2e}
+\renewcommand\thesection{}
 
+\title{Self-supervised learning}
+\author{Автор: Виданов Андрей \\Руководитель: Барабанщикова Полина}
 
-
-\title{A template for the \emph{arxiv} style}
-
-\author{ David S.~Hippocampus\thanks{Use footnote for providing further
-		information about author (webpage, alternative
-		address)---\emph{not} for acknowledging funding agencies.} \\
-	Department of Computer Science\\
-	Cranberry-Lemon University\\
-	Pittsburgh, PA 15213 \\
-	\texttt{hippo@cs.cranberry-lemon.edu} \\
-	%% examples of more authors
-	\And
-	Elias D.~Striatum \\
-	Department of Electrical Engineering\\
-	Mount-Sheikh University\\
-	Santa Narimana, Levand \\
-	\texttt{stariate@ee.mount-sheikh.edu} \\
-	%% \AND
-	%% Coauthor \\
-	%% Affiliation \\
-	%% Address \\
-	%% \texttt{email} \\
-	%% \And
-	%% Coauthor \\
-	%% Affiliation \\
-	%% Address \\
-	%% \texttt{email} \\
-	%% \And
-	%% Coauthor \\
-	%% Affiliation \\
-	%% Address \\
-	%% \texttt{email} \\
-}
-\date{}
-
-\renewcommand{\shorttitle}{\textit{arXiv} Template}
-
-%%% Add PDF metadata to help others organize their library
-%%% Once the PDF is generated, you can check the metadata with
-%%% $ pdfinfo template.pdf
-\hypersetup{
-pdftitle={A template for the arxiv style},
-pdfsubject={q-bio.NC, q-bio.QM},
-pdfauthor={David S.~Hippocampus, Elias D.~Striatum},
-pdfkeywords={First keyword, Second keyword, More},
-}
-
+\newtheorem{definition}{Опредление} % Опредление
 \begin{document}
-\maketitle
 
+\maketitle
 \begin{abstract}
-	\lipsum[1]
+В последние годы все активнее развиваются техники обучения без учителя, которые не требуют предварительной разметки на данных. Для изображений является полезной задача создания представлений, поскольку они могут использоваться в различных задачах машинного обучения для повышения качества финальных моделей. Переход к подобным методам является перспективным, но сопряжен с рядом новых задач.Предлагается рассмотреть методы на основе много компонентной функции потерь в частности VICReg и TiCo, а также их модификации. Эксперименты проводятся на наборе данных "CIFAR10", в качестве финального классификитора используется простая линейная модель
 \end{abstract}
 
+\section{Введение}
+Развитие техник самообучения\cite{https://habr.com/ru/post/704710/}. В данной области ставится множество задач и применяются различные, в том числе генеративные, методы \cite{https://arxiv.org/pdf/2006.08218.pdf}
+Как показывают эксперименты, применение классических для традиционного машинного обучения техник, таких как batch norm, может улучшать результаты до передовых в данной области знания \cite{https://generallyintelligent.com/blog/2020-08-24-understanding-self-supervised-contrastive-learning}.
 
-\keywords{First keyword \and Second keyword \and More}
+Однако мотивы применения тех или иных подходов зачастую являются сугубо практическими(улучшение качества модели), но не теоретически обоснованными, что ставит под вопрос универсальность их применения для задач своего типа. Теоретические изыскания в данном вопросе активно проводятся \cite{https://arxiv.org/pdf/2105.04906.pdf}, тем не менее множество работ сосредоточено на получении эффективных эвристик. Специфика задачи генерации эмбеддингов для картинок требует особых методов.
+В частности, для задач связанными с изображениями нет методов для создания отрицательных пар(пара изображений разных классов, подробнее на paperwithcode\cite{https://paperswithcode.com/paper/solving-inefficiency-of-self-supervised}), обучаясь на которых модель могла бы улавливать чем отличаются кардинально разные картинки. Избежать данной проблемы можно спроектировав модели, не требующие негативных пар. Модель минимизирует расстояние между эмбеддингами похожих картинок. Но данные методы склонны к вырождению, иначе говоря сталкиваются с коллапсом(явление, когда модель сопоставляет всем картинкам одно и то же представление). В результате чего стоит крайне аккуратно подбирать лосс-функции\cite{https://arxiv.org/pdf/2105.04906.pdf} или проектировать модель. \cite{https://arxiv.org/pdf/2011.10566.pdf}, \cite{https://arxiv.org/pdf/2103.03230.pdf}. 
 
-\section{Introduction}
-\lipsum[2]
-\lipsum[3]
+Приденные выше техники эффективны практике, но теоретическая мотивация их использования до сих пор остается непрозрачной. 
+Задачей исследования явлется нахождения зависимостей между применениями различных техник и качеством получаемых эмбеддингов, а также риска столкнуться с коллапсом. Предполагается, модификации лосс-функции приведут к улучшению финальных показателей в прикладных задачах. 
 
-\section{Headings: first level}
-\label{sec:headings}
+Предлагаемые изменения в функции потерь являются точечными из-за чего получится лучше определить их влиение на результат модели.
 
-\lipsum[4] See Section \ref{sec:headings}.
-
-\subsection{Headings: second level}
-\lipsum[5]
-\begin{equation}
-	\xi _{ij}(t)=P(x_{t}=i,x_{t+1}=j|y,v,w;\theta)= {\frac {\alpha _{i}(t)a^{w_t}_{ij}\beta _{j}(t+1)b^{v_{t+1}}_{j}(y_{t+1})}{\sum _{i=1}^{N} \sum _{j=1}^{N} \alpha _{i}(t)a^{w_t}_{ij}\beta _{j}(t+1)b^{v_{t+1}}_{j}(y_{t+1})}}
-\end{equation}
-
-\subsubsection{Headings: third level}
-\lipsum[6]
-
-\paragraph{Paragraph}
-\lipsum[7]
+Измеримыми целями исследования явлеются численные показатели полученные в ходе применения модификаций к функции потерь.В частности, метод обучается на тренировочной выбоке, далее на представления на тренировочной выборке обучается простой линейный классификатор, после чего на тестовой часте данных классификатор предсказывает класс изображения, затем считается точность предсказания.
 
 
 
-\section{Examples of citations, figures, tables, references}
-\label{sec:others}
-
-\subsection{Citations}
-Citations use \verb+natbib+. The documentation may be found at
-\begin{center}
-	\url{http://mirrors.ctan.org/macros/latex/contrib/natbib/natnotes.pdf}
-\end{center}
-
-Here is an example usage of the two main commands (\verb+citet+ and \verb+citep+): Some people thought a thing \citep{kour2014real, hadash2018estimate} but other people thought something else \citep{kour2014fast}. Many people have speculated that if we knew exactly why \citet{kour2014fast} thought this\dots
-
-\subsection{Figures}
-\lipsum[10]
-See Figure \ref{fig:fig1}. Here is how you add footnotes. \footnote{Sample of the first footnote.}
-\lipsum[11]
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.5\textwidth]{../figures/log_reg_cs_exp.eps}
-	\caption{Sample figure caption.}
-	\label{fig:fig1}
-\end{figure}
-
-\subsection{Tables}
-See awesome Table~\ref{tab:table}.
-
-The documentation for \verb+booktabs+ (`Publication quality tables in LaTeX') is available from:
-\begin{center}
-	\url{https://www.ctan.org/pkg/booktabs}
-\end{center}
 
 
-\begin{table}
-	\caption{Sample table title}
-	\centering
-	\begin{tabular}{lll}
-		\toprule
-		\multicolumn{2}{c}{Part}                   \\
-		\cmidrule(r){1-2}
-		Name     & Description     & Size ($\mu$m) \\
-		\midrule
-		Dendrite & Input terminal  & $\sim$100     \\
-		Axon     & Output terminal & $\sim$10      \\
-		Soma     & Cell body       & up to $10^6$  \\
-		\bottomrule
-	\end{tabular}
-	\label{tab:table}
-\end{table}
-
-\subsection{Lists}
-\begin{itemize}
-	\item Lorem ipsum dolor sit amet
-	\item consectetur adipiscing elit.
-	\item Aliquam dignissim blandit est, in dictum tortor gravida eget. In ac rutrum magna.
-\end{itemize}
+\section{Постановка задачи}
 
 
-\bibliographystyle{unsrtnat}
-\bibliography{references}
+Рассматривается задача построения по объекту вектора, $f$ действует из пространства картинок в пространство векторов $\bm{f}: \mathbb{R}^{c \times h \times w} \rightarrow  \mathbb{R}^d$(где $c$ - количество цветовых каналов, $h$ - высота, $w$ - ширина исходного изображения), \\ который, в некотором смысле, ее описывает.\\
 
+
+Рассмотрим структуру работы  моделей данного типа.
+На вход модели подается картинка $\bm{x}$. По ней строятся два видоизмененных(например, применяются сдвиги, повороты, размытие, сжатия вдоль осей) изображения $\bm{y_1, y_2}$. Далее к ним применяется обучаемая модель $\bm{f_{\theta}}(\bm{y_1}), \bm{f_{\theta}}(\bm{y_2})$(где $\bm{\theta}$ вектор параметров модели). После чего применяется проектор $\bm{p_{\theta}}$
+\[\bm{z_i} = \bm{p_{\theta}}(\bm{f_{\theta}}(\bm{y_i})),\] который также может зависеть от обучаемых параметров, и производится сравнение с помощью функции потерь $\bm{L}$, которая минимизируется при обучении. Для подсчета лосс-функции получившиеся векторы собираются в коллекции, которые обозначим через $\bm{Z} = [\bm{z_1},...,\bm{z_n}]$ и $\bm{Z'} = [\bm{z_1},,,\bm{z_n}]$
+\[\bm{L}(\bm{Z}, \bm{Z'}) = \lambda \bm{s}(\bm{Z}, \bm{Z'}) + \mu [\bm{v}(\bm{Z}, \bm{Z'})] + \nu [\bm{c}(\bm{Z}, \bm{Z'})],\] где
+$\bm{s}(\bm{Z}, \bm{Z'})$ --- отвечает за инвариантность получаемых представлений,\\
+$\bm{v}(\bm{Z}, \bm{Z'})$ --- отвечает за дисперсию представений, \\
+$\bm{c}(\bm{Z}, \bm{Z'})$ --- отвечает за ковариацию
+
+Для обучения модели ставится задача оптимизации, а именно 
+$$\bm{\theta_{L}^*} = \arg \min_{\theta}{\bm{L}(\bm{Z_{\theta}}, \bm{Z_{\theta}'}| \bm{X})}$$
+
+Качество получаемых эмбеддингов оценивается благодаря испльзованью их в качестве параметров для простой линейной модели классификации 
+$$min_{\varphi} \bm{CE}(\bm{h_{\varphi}} (\bm{f_{\theta_{L}^*}(\bm{X})}), y) \xrightarrow{L} min$$, где $\bm{CE}$ - кросс-энтропия; \\$\bm{h_{\varphi}} : \mathbb{R}^d \rightarrow \mathbb{R}$ - линейная модель классификации c ветором параметров $\bm{\varphi}$;\\ $y$ - истинный класс.
+
+
+
+\section{План экспериментов}
+Для экспериментов используется датасет "CIFAR10". Набор данных CIFAR-10 состоит из 60000 цветных изображений 32x32 в 10 классах, по 6000 изображений в каждом классе. Есть 50000 обучающих изображений и 10000 тестовых изображений.
+
+
+
+
+Модель состоит из базовой части, в качестве которой используется ResNet50, головы - BarrowTwin проекция. Для проверки качества полученных эмбеддингов используется линейная модель классификации. В качестве метрики качества модели классификации используется Accuracy. Ожидается, что качество классификации улучшается после процедуры самообучения.
+
+
+\section{Предоварительный отчет}
+Тестирование модели не выявило логических противоречий с утверждениями ранее изложенными в работе
+Процедура самообучения способствует высокой точности классификации даже при использовании простой линейной модели.
+
+
+\section{Предлагаемые методы}
+В качестве слагаемого контроля ковариации использовать  Transformation Invariance and Covariance Contrast (TiCo) подход для функции потерь для VicReg
+
+Стандартный подсчет ковариации:
+\begin{algorithm}
+$cov_x \gets (z_a.T \times z_a) / (N - 1)$\;
+$cov_y \gets (z_b.T \times z_b) / (N - 1)$\;
+$dcov_x \gets diag(cov_x)$\;
+$dcov_y \gets diag(cov_y)$\;
+$covcomponent \gets div(sum(dcov_x^2)) + div(sum(dcov_y^2))$
+\end{algorithm}
+
+Заменить на 
+
+\begin{algorithm}[hbt!]
+
+$B =  (z_1 .T \times z_1 ) / n$ \\
+$C = \beta C + (1 - \beta)B$\\
+
+$covcomponent =  mean (sum ((( z_1 \times C) * z_1 ), dim =1))$
+
+Засчет пересчета ковариации для каждого батча ожидается повысить итоговое качество, т.к. регуляризация станет более адаптивной
+\end{algorithm}
+\newpage
+ 
+% даём указание на включение данного место в оглавление как секции (\section)
+\addcontentsline{toc}{section}{Список используемой литературы}
+ 
+%далее сам список используевой литературы
+\begin{thebibliography}{}
+    \bibitem{https://arxiv.org/pdf/2011.10566.pdf}  Xinlei Chen Kaiming He  -  "Exploring Simple Siamese Representation Learning"
+    \bibitem{https://arxiv.org/pdf/2105.04906.pdf}  Аdrien Bardes, Jean Ponce, Yann LeCun  -  "VICREG: VARIANCE-INVARIANCE-COVARIANCE REGULARIZATION FOR SELF-SUPERVISED LEARNING"
+    \bibitem{https://arxiv.org/pdf/2103.03230.pdf} Jure Zbontar, Li Jing, Ishan Misra, Yann LeCun, Stephane Deny ´
+    \bibitem{https://arxiv.org/pdf/2006.08218.pdf} Xiao Liu, Fanjin Zhang, Zhenyu Hou, Li Mian, Zhaoyu Wang, Jing Zhang, Jie Tang - "Self-supervised Learning: Generative or Contrastive"
+    \bibitem{https://generallyintelligent.com/blog/2020-08-24-understanding-self-supervised-contrastive-learning} Abe Fetterman
+    Josh Albrecht - Understanding Self-Supervised and Contrastive Learning with "Bootstrap Your Own Latent" (BYOL)
+
+    \bibitem{https://habr.com/ru/post/704710/} Самообучение. Проблематика и постановка задачи
+    \bibitem{https://paperswithcode.com/paper/solving-inefficiency-of-self-supervised} Задача классификации по представлениям
+\end{thebibliography}
 \end{document}
